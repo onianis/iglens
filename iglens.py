@@ -1,6 +1,16 @@
-import customtkinter as ctk, sys, os, json, pyglet
+import customtkinter as ctk, os, json, pyglet, sys
 from tkinter import *
 from tkinter import filedialog
+pyglet.options['win32_gdi_font'] = True
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    
+    return os.path.join(base_path, relative_path)
 
 
 
@@ -15,6 +25,9 @@ class Iglens():
 
         # core window
         self.root = ctk.CTk()
+
+        font_path = resource_path(os.path.join('assets', 'handcaps-regular.otf'))
+        pyglet.font.add_file(font_path)
         
         # fonts
         self.HANDCAPS = 'Handcaps'
@@ -30,9 +43,6 @@ iglens = Iglens()
 
 
 
-# ts actually puts the window off center.
-# NOT using it puts the window in the center.
-# wtf
 def center_window(window):
     window.update_idletasks()
     width = window.winfo_width()
@@ -131,18 +141,22 @@ def fetch_friends():
 def present_results():
     results_window = ctk.CTkToplevel(iglens.root)
     results_window.title('IGLens Results')
-    results_window.geometry('350x600')
-    results_window.wm_attributes("-type", "dialog")
+    results_window.geometry('450x650')
+    results_window.wm_attributes("-topmost", "true")
     results_window.resizable(width = False, height = True)
     results_window.configure(fg_color = '#FFFBAD')
+    center_window(results_window)
 
     scroll_frame = ctk.CTkScrollableFrame(results_window, label_text='Account list',
-        label_font = iglens.handcaps_25, fg_color = '#FFFBAD')
+        label_font = iglens.handcaps_25, fg_color = '#FFFBAD', label_fg_color='#8F0024',
+        label_text_color='#FFFBAD', scrollbar_button_color='#8F0024',
+        scrollbar_button_hover_color='#520014')
     scroll_frame.pack(fill = 'both', expand = True, padx = 10, pady = 10)
 
     for acc in iglens.result_list:
         entry = ctk.CTkCheckBox(scroll_frame, text = acc, border_color = '#8F0024',
-            text_color = '#8F0024', font=('Courier', 18, 'bold'))
+            text_color = '#8F0024', font=('Courier', 18, 'bold'), hover_color='#520014',
+            fg_color='#8F0024', corner_radius=10)
         entry.pack(pady = 2, padx = 10, anchor = 'w')
 
 
@@ -179,12 +193,7 @@ def handle_radio_button(mode, investigate_button):
 def main():
     # constants
     VERSION_NAME = "v0.1-a"
-    FONT_PATH = os.path.join(os.path.dirname(__file__), 'assets')
-    FONT_NAME = "handcaps-regular.otf"
-    HANDCAPS = "Handcaps"
 
-    # add font with pyglet
-    pyglet.font.add_file(os.path.join(FONT_PATH, FONT_NAME))
 
     # general window attributes
     root = iglens.root
@@ -192,6 +201,7 @@ def main():
     root.geometry('400x430')
     root.resizable(width=False, height=False)
     root.configure(fg_color='#FFFBAD')
+    center_window(root)
 
     # set up grid format
     root.columnconfigure(0, weight=1)
@@ -226,7 +236,7 @@ def main():
     investigate_button = ctk.CTkButton(frame, text = 'Investigate!', 
         command = lambda: start_investigation(mode.get()), width = 300, fg_color = '#8F0024', hover_color = '#520014',
         corner_radius = 10, text_color = '#FFFBAD', font = iglens.handcaps_35_bold, border_spacing = 0, state = 'disabled',
-        text_color_disabled = '#FF1F57')
+        text_color_disabled = '#FF5C85')
 
     follower_button = ctk.CTkButton(frame, text = 'follower list...', 
         command = lambda: get_follower_list(follower_filename_label, investigate_button), width = 150, 
@@ -255,9 +265,6 @@ def main():
         corner_radius = 10, border_color='#8F0024', text_color='#8F0024', text_color_disabled='#444444',
         hover=True, state='normal', command=lambda: handle_radio_button(mode.get(), investigate_button), variable=mode, 
         value = 3, font = iglens.handcaps_20, hover_color = '#520014', fg_color='#8F0024', border_width_checked=8)
-
-
-
 
     # place UI elements on grid
     title_label.grid(row = 0, column = 0, columnspan = 2, sticky = 'w', pady = (0, 20))
