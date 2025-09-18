@@ -21,7 +21,13 @@ def get_follower_list_dir():
     pass
 
 
+
 def get_following_list_dir():
+    pass
+
+
+
+def not_implemented():
     pass
 
 
@@ -39,7 +45,7 @@ def main():
     # general window attributes
     root = ctk.CTk()
     root.title('IGlens v0.1-a')
-    root.geometry('400x400')
+    root.geometry('400x430')
     root.resizable(width=False, height=False)
     root.configure(fg_color='#999999')
 
@@ -59,13 +65,17 @@ def main():
     handcaps_50_bold = ctk.CTkFont(family=HANDCAPS, size=50, weight='bold')
     handcaps_20 = ctk.CTkFont(family=HANDCAPS, size = 20)
     handcaps_25 = ctk.CTkFont(family=HANDCAPS, size = 25)
+    handcaps_35_bold = ctk.CTkFont(family=HANDCAPS, size = 35)
+
+    # define result mode variable
+    mode = IntVar(value = 0)
 
     # define UI elements
     title_label = ctk.CTkLabel(frame, text = 'IGLens', text_color='#222222', justify = 'left',
         padx = 0, pady = 0, font=handcaps_50_bold)
     
     version_label = ctk.CTkLabel(frame, text = VERSION_NAME, text_color = '#222222', 
-        padx = 0, pady = 0, justify = 'left', font=handcaps_20)
+        justify = 'left', padx = 0, pady = 0, font=handcaps_20)
     
     follower_button = ctk.CTkButton(frame, text = 'follower list...', 
         command = get_follower_list_dir, width = 150, fg_color = '#222222', hover_color = '#333333',
@@ -75,15 +85,54 @@ def main():
     command = get_following_list_dir, width = 150, fg_color = '#222222', hover_color = '#333333',
     corner_radius = 10, text_color = '#999999', font = handcaps_25, border_spacing = 0)
 
-    # place UI elements on grid
-    title_label.grid(row = 0, column = 0, columnspan = 3)
+    follower_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222',
+        justify = 'right', padx = 0, pady = 0, font=handcaps_20)
     
-    version_label.grid(row = 0, column = 3, columnspan = 1, padx = (15, 0), pady = (20, 0))
+    following_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222', 
+        justify = 'right', padx = 0, pady = 0, font=handcaps_20)
+    
+    mode_select_hint_label = ctk.CTkLabel(frame, text = 'Select type of output:', text_color='#222222',
+        justify = 'left', padx = 0, pady = 0, font=handcaps_25)
+    
+    nonfollowers_rdo = ctk.CTkRadioButton(frame, text='doesn\'t-follow-back', width = 100,
+        corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
+        hover=True, state='normal', command=not_implemented, variable=mode, value = 1, font = handcaps_20)
+    
+    fans_rdo = ctk.CTkRadioButton(frame, text='fans', width = 100,
+    corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
+    hover=True, state='normal', command=not_implemented, variable=mode, value = 2, font = handcaps_20)
 
-    follower_button.grid(row = 1, column = 0, columnspan = 2)
+    friends_rdo = ctk.CTkRadioButton(frame, text='friends', width = 100,
+    corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
+    hover=True, state='normal', command=not_implemented, variable=mode, value = 3, font = handcaps_20)
 
-    following_button.grid(row = 2, column = 0, columnspan = 2) 
+    investigate_button = ctk.CTkButton(frame, text = 'Investigate!', 
+    command = not_implemented, width = 300, fg_color = '#222222', hover_color = '#333333',
+    corner_radius = 10, text_color = '#999999', font = handcaps_35_bold, border_spacing = 0)
 
+
+    # place UI elements on grid
+    title_label.grid(row = 0, column = 0, columnspan = 2, sticky = 'w', pady = (0, 20))
+    
+    version_label.grid(row = 0, column = 2, columnspan = 3, padx = (0, 0), pady = (20, 20), sticky='w')
+
+    follower_button.grid(row = 1, column = 0, columnspan = 2, sticky='w', pady = (0, 20))
+
+    following_button.grid(row = 2, column = 0, columnspan = 2, sticky='w', pady = (0, 20))
+
+    follower_filename_label.grid(row = 1, column = 2, columnspan = 10, sticky='e', pady=(0, 20))
+
+    following_filename_label.grid(row = 2, column = 2, columnspan = 10, sticky='e', pady = (0, 20))
+
+    mode_select_hint_label.grid(row = 3, column = 0, columnspan = 3, sticky = 'w')
+
+    nonfollowers_rdo.grid(row = 4, column = 0, columnspan = 3, sticky = 'w', pady = (0, 5))
+
+    fans_rdo.grid(row = 5, column = 0, columnspan = 3, sticky = 'w', pady = (0, 5))
+
+    friends_rdo.grid(row = 6, column = 0, columnspan = 3, sticky = 'w', pady = (0, 20))
+
+    investigate_button.grid(row = 7, column = 0, columnspan = 11)
 
     root.mainloop()
 
