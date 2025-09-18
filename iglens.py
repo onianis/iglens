@@ -7,6 +7,7 @@ from tkinter import filedialog
 # app state manager class
 class Iglens():
     def __init__(self):
+        # variables and data
         self.follower_list = None
         self.following_list = None
 
@@ -32,7 +33,7 @@ def center_window(window):
 
 
 
-def get_follower_list():
+def get_follower_list(filename_label):
     # ask user for file
     followers_file = filedialog.askopenfile(mode='r', title = 'Select Meta JSON file containing followers...')
     # parse file
@@ -44,13 +45,15 @@ def get_follower_list():
     for follower in followers_raw_data:
         follower_list.append(follower['string_list_data'][0]['value'])
 
-    print(len(follower_list))
     # assign parsed list to global object
     iglens.follower_list = follower_list
 
+    # change filename label in GUI
+    filename_label.configure(text = os.path.basename(followers_file.name))
 
 
-def get_following_list():
+
+def get_following_list(filename_label):
     # ask user for file
     following_file = filedialog.askopenfile(mode = 'r', title = 'Select Meta JSON file containing following...')
     # parse file
@@ -62,10 +65,11 @@ def get_following_list():
     for following in following_raw_data['relationships_following']:
         following_list.append(following['string_list_data'][0]['value'])
     
-    print(len(following_list))
     # assign parsed list to global object
     iglens.following_list = following_list
 
+    # change filename label in GUI
+    filename_label.configure(text = os.path.basename(following_file.name))
 
 
 
@@ -118,20 +122,22 @@ def main():
     
     version_label = ctk.CTkLabel(frame, text = VERSION_NAME, text_color = '#222222', 
         justify = 'left', padx = 0, pady = 0, font=handcaps_20)
-    
-    follower_button = ctk.CTkButton(frame, text = 'follower list...', 
-        command = get_follower_list, width = 150, fg_color = '#222222', hover_color = '#333333',
-        corner_radius = 10, text_color = '#999999', font = handcaps_25, border_spacing = 0)
-
-    following_button = ctk.CTkButton(frame, text = 'following list...', 
-        command = get_following_list, width = 150, fg_color = '#222222', hover_color = '#333333',
-        corner_radius = 10, text_color = '#999999', font = handcaps_25, border_spacing = 0)
 
     follower_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222',
         justify = 'right', padx = 0, pady = 0, font=handcaps_20)
     
     following_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222', 
         justify = 'right', padx = 0, pady = 0, font=handcaps_20)
+
+    follower_button = ctk.CTkButton(frame, text = 'follower list...', 
+        command = lambda: get_follower_list(follower_filename_label), width = 150, fg_color = '#222222', 
+        hover_color = '#333333', corner_radius = 10, text_color = '#999999', font = handcaps_25, 
+        border_spacing = 0)
+
+    following_button = ctk.CTkButton(frame, text = 'following list...', 
+        command = lambda: get_following_list(following_filename_label), width = 150, fg_color = '#222222', 
+        hover_color = '#333333', corner_radius = 10, text_color = '#999999', font = handcaps_25, 
+        border_spacing = 0)
     
     mode_select_hint_label = ctk.CTkLabel(frame, text = 'Select type of output:', text_color='#222222',
         justify = 'left', padx = 0, pady = 0, font=handcaps_25)
@@ -175,6 +181,7 @@ def main():
     friends_rdo.grid(row = 6, column = 0, columnspan = 3, sticky = 'w', pady = (0, 20))
 
     investigate_button.grid(row = 7, column = 0, columnspan = 11)
+
 
     root.mainloop()
 
