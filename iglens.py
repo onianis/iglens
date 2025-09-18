@@ -10,6 +10,18 @@ class Iglens():
         # variables and data
         self.follower_list = None
         self.following_list = None
+        self.result_list = None
+        self.mode = 0
+
+        # core window
+        self.root = ctk.CTk()
+        
+        # fonts
+        self.HANDCAPS = 'Handcaps'
+        self.handcaps_50_bold = ctk.CTkFont(family=self.HANDCAPS, size=50, weight='bold')
+        self.handcaps_20 = ctk.CTkFont(family=self.HANDCAPS, size = 20)
+        self.handcaps_25 = ctk.CTkFont(family=self.HANDCAPS, size = 25)
+        self.handcaps_35_bold = ctk.CTkFont(family=self.HANDCAPS, size = 35)
 
 
 
@@ -33,7 +45,7 @@ def center_window(window):
 
 
 
-def get_follower_list(filename_label):
+def get_follower_list(filename_label, investigate_button):
     # ask user for file
     followers_file = filedialog.askopenfile(mode='r', title = 'Select Meta JSON file containing followers...')
     # parse file
@@ -51,9 +63,12 @@ def get_follower_list(filename_label):
     # change filename label in GUI
     filename_label.configure(text = os.path.basename(followers_file.name))
 
+    # update button state
+    update_button_state(investigate_button)
 
 
-def get_following_list(filename_label):
+
+def get_following_list(filename_label, investigate_button):
     # ask user for file
     following_file = filedialog.askopenfile(mode = 'r', title = 'Select Meta JSON file containing following...')
     # parse file
@@ -71,10 +86,93 @@ def get_following_list(filename_label):
     # change filename label in GUI
     filename_label.configure(text = os.path.basename(following_file.name))
 
+    # update button state
+    update_button_state(investigate_button)
+    
 
 
-def not_implemented():
-    pass
+def fetch_nonfollowers():
+    followers_set = set(iglens.follower_list)
+    following_set = set(iglens.following_list)
+
+    nonfollowers_set = following_set.difference(followers_set)
+    nonfollowers_list = list(nonfollowers_set)
+    nonfollowers_list.sort()
+
+
+    return nonfollowers_list
+
+
+
+def fetch_fans():
+    followers_set = set(iglens.follower_list)
+    following_set = set(iglens.following_list)
+
+    fans_set = followers_set.difference(following_set)
+    fans_list = list(fans_set)
+    fans_list.sort()
+
+    return fans_list
+
+
+
+def fetch_friends():
+    followers_set = set(iglens.follower_list)
+    following_set = set(iglens.following_list)
+
+    friends_set = followers_set.intersection(following_set)
+    friends_list = list(friends_set)
+    friends_list.sort()
+
+    return friends_list
+
+
+
+def present_results():
+    results_window = ctk.CTkToplevel(iglens.root)
+    results_window.title('IGLens Results')
+    results_window.geometry('350x600')
+    results_window.wm_attributes("-type", "dialog")
+    results_window.resizable(width = False, height = True)
+    results_window.configure(fg_color = '#FFFBAD')
+
+    scroll_frame = ctk.CTkScrollableFrame(results_window, label_text='Account list',
+        label_font = iglens.handcaps_25, fg_color = '#FFFBAD')
+    scroll_frame.pack(fill = 'both', expand = True, padx = 10, pady = 10)
+
+    for acc in iglens.result_list:
+        entry = ctk.CTkCheckBox(scroll_frame, text = acc, border_color = '#8F0024',
+            text_color = '#8F0024', font=('Courier', 18, 'bold'))
+        entry.pack(pady = 2, padx = 10, anchor = 'w')
+
+
+
+
+def start_investigation(mode):
+    match mode:
+        case 1:
+            iglens.result_list = fetch_nonfollowers()
+        case 2:
+            iglens.result_list = fetch_fans()
+        case 3:
+            iglens.result_list = fetch_friends()
+
+    present_results()
+
+
+
+def update_button_state(button):
+    if iglens.follower_list is not None and iglens.following_list is not None \
+        and iglens.mode != 0:
+        button.configure(state='normal')
+    else:
+        button.configure(state='disabled')
+
+
+
+def handle_radio_button(mode, investigate_button):
+    iglens.mode = mode
+    update_button_state(investigate_button)
 
 
 
@@ -89,74 +187,76 @@ def main():
     pyglet.font.add_file(os.path.join(FONT_PATH, FONT_NAME))
 
     # general window attributes
-    root = ctk.CTk()
+    root = iglens.root
     root.title('IGlens v0.1-a')
     root.geometry('400x430')
     root.resizable(width=False, height=False)
-    root.configure(fg_color='#999999')
+    root.configure(fg_color='#FFFBAD')
 
     # set up grid format
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
     # create wrapper frame inside main window
-    frame = ctk.CTkFrame(root, fg_color='#999999')
+    frame = ctk.CTkFrame(root, fg_color='#FFFBAD')
     frame.grid(column = 0, row = 0, sticky = (N, W, E, S), padx = 15, pady = 15)
 
     # create layout for wrapper frame
     frame.columnconfigure(10, weight = 1)
     frame.rowconfigure(10, weight = 1)
 
-    # create custom Ctk font
-    handcaps_50_bold = ctk.CTkFont(family=HANDCAPS, size=50, weight='bold')
-    handcaps_20 = ctk.CTkFont(family=HANDCAPS, size = 20)
-    handcaps_25 = ctk.CTkFont(family=HANDCAPS, size = 25)
-    handcaps_35_bold = ctk.CTkFont(family=HANDCAPS, size = 35)
-
     # define result mode variable
     mode = IntVar(value = 0)
+    # link internal mode value to value in Iglens class
+    iglens.mode = mode.get()
 
     # define UI elements
-    title_label = ctk.CTkLabel(frame, text = 'IGLens', text_color='#222222', justify = 'left',
-        padx = 0, pady = 0, font=handcaps_50_bold)
+    title_label = ctk.CTkLabel(frame, text = 'IGLens', text_color='#8F0024', justify = 'left',
+        padx = 0, pady = 0, font=iglens.handcaps_50_bold)
     
-    version_label = ctk.CTkLabel(frame, text = VERSION_NAME, text_color = '#222222', 
-        justify = 'left', padx = 0, pady = 0, font=handcaps_20)
+    version_label = ctk.CTkLabel(frame, text = VERSION_NAME, text_color = '#8F0024', 
+        justify = 'left', padx = 0, pady = 0, font=iglens.handcaps_20)
 
-    follower_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222',
-        justify = 'right', padx = 0, pady = 0, font=handcaps_20)
+    follower_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#8F0024',
+        justify = 'right', padx = 0, pady = 0, font=iglens.handcaps_20)
     
-    following_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222', 
-        justify = 'right', padx = 0, pady = 0, font=handcaps_20)
+    following_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#8F0024', 
+        justify = 'right', padx = 0, pady = 0, font=iglens.handcaps_20)
+    
+    investigate_button = ctk.CTkButton(frame, text = 'Investigate!', 
+        command = lambda: start_investigation(mode.get()), width = 300, fg_color = '#8F0024', hover_color = '#520014',
+        corner_radius = 10, text_color = '#FFFBAD', font = iglens.handcaps_35_bold, border_spacing = 0, state = 'disabled',
+        text_color_disabled = '#FF1F57')
 
     follower_button = ctk.CTkButton(frame, text = 'follower list...', 
-        command = lambda: get_follower_list(follower_filename_label), width = 150, fg_color = '#222222', 
-        hover_color = '#333333', corner_radius = 10, text_color = '#999999', font = handcaps_25, 
-        border_spacing = 0)
+        command = lambda: get_follower_list(follower_filename_label, investigate_button), width = 150, 
+        fg_color = '#8F0024', hover_color = '#520014', corner_radius = 10, text_color = '#FFFBAD', 
+        font = iglens.handcaps_25, border_spacing = 0)
 
     following_button = ctk.CTkButton(frame, text = 'following list...', 
-        command = lambda: get_following_list(following_filename_label), width = 150, fg_color = '#222222', 
-        hover_color = '#333333', corner_radius = 10, text_color = '#999999', font = handcaps_25, 
-        border_spacing = 0)
+        command = lambda: get_following_list(following_filename_label, investigate_button), width = 150, 
+        fg_color = '#8F0024', hover_color = '#520014', corner_radius = 10, text_color = '#FFFBAD', 
+        font = iglens.handcaps_25, border_spacing = 0)
     
-    mode_select_hint_label = ctk.CTkLabel(frame, text = 'Select type of output:', text_color='#222222',
-        justify = 'left', padx = 0, pady = 0, font=handcaps_25)
+    mode_select_hint_label = ctk.CTkLabel(frame, text = 'Select type of output:', text_color='#8F0024',
+        justify = 'left', padx = 0, pady = 0, font= iglens.handcaps_25)
     
     nonfollowers_rdo = ctk.CTkRadioButton(frame, text='doesn\'t-follow-back', width = 100,
-        corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
-        hover=True, state='normal', command=not_implemented, variable=mode, value = 1, font = handcaps_20)
+        corner_radius = 10, border_color='#8F0024', text_color='#8F0024', text_color_disabled='#444444',
+        hover=True, state='normal', command=lambda: handle_radio_button(mode.get(), investigate_button), variable=mode, 
+        value = 1, font = iglens.handcaps_20, hover_color = '#520014', fg_color='#8F0024', border_width_checked=8)
     
     fans_rdo = ctk.CTkRadioButton(frame, text='fans', width = 100,
-        corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
-        hover=True, state='normal', command=not_implemented, variable=mode, value = 2, font = handcaps_20)
+        corner_radius = 10, border_color='#8F0024', text_color='#8F0024', text_color_disabled='#444444',
+        hover=True, state='normal', command=lambda: handle_radio_button(mode.get(), investigate_button), variable=mode, 
+        value = 2, font = iglens.handcaps_20, hover_color = '#520014', fg_color='#8F0024', border_width_checked=8)
 
     friends_rdo = ctk.CTkRadioButton(frame, text='friends', width = 100,
-        corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
-        hover=True, state='normal', command=not_implemented, variable=mode, value = 3, font = handcaps_20)
+        corner_radius = 10, border_color='#8F0024', text_color='#8F0024', text_color_disabled='#444444',
+        hover=True, state='normal', command=lambda: handle_radio_button(mode.get(), investigate_button), variable=mode, 
+        value = 3, font = iglens.handcaps_20, hover_color = '#520014', fg_color='#8F0024', border_width_checked=8)
 
-    investigate_button = ctk.CTkButton(frame, text = 'Investigate!', 
-        command = not_implemented, width = 300, fg_color = '#222222', hover_color = '#333333',
-        corner_radius = 10, text_color = '#999999', font = handcaps_35_bold, border_spacing = 0)
+
 
 
     # place UI elements on grid
