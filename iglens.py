@@ -1,6 +1,21 @@
 import customtkinter as ctk, sys, os, json, pyglet
-
 from tkinter import *
+from tkinter import filedialog
+
+
+
+# app state manager class
+class Iglens():
+    def __init__(self):
+        self.follower_list = None
+        self.following_list = None
+
+
+
+# create instance of state manager
+iglens = Iglens()
+
+
 
 # ts actually puts the window off center.
 # NOT using it puts the window in the center.
@@ -17,13 +32,40 @@ def center_window(window):
 
 
 
-def get_follower_list_dir():
-    pass
+def get_follower_list():
+    # ask user for file
+    followers_file = filedialog.askopenfile(mode='r', title = 'Select Meta JSON file containing followers...')
+    # parse file
+    followers_raw_data = json.load(followers_file)
+    # initialize list
+    follower_list = []
+
+    # parse list and extract usernames
+    for follower in followers_raw_data:
+        follower_list.append(follower['string_list_data'][0]['value'])
+
+    print(len(follower_list))
+    # assign parsed list to global object
+    iglens.follower_list = follower_list
 
 
 
-def get_following_list_dir():
-    pass
+def get_following_list():
+    # ask user for file
+    following_file = filedialog.askopenfile(mode = 'r', title = 'Select Meta JSON file containing following...')
+    # parse file
+    following_raw_data = json.load(following_file)
+    # initialize list
+    following_list = []
+
+    # parse list and extract usernames
+    for following in following_raw_data['relationships_following']:
+        following_list.append(following['string_list_data'][0]['value'])
+    
+    print(len(following_list))
+    # assign parsed list to global object
+    iglens.following_list = following_list
+
 
 
 
@@ -78,12 +120,12 @@ def main():
         justify = 'left', padx = 0, pady = 0, font=handcaps_20)
     
     follower_button = ctk.CTkButton(frame, text = 'follower list...', 
-        command = get_follower_list_dir, width = 150, fg_color = '#222222', hover_color = '#333333',
+        command = get_follower_list, width = 150, fg_color = '#222222', hover_color = '#333333',
         corner_radius = 10, text_color = '#999999', font = handcaps_25, border_spacing = 0)
 
     following_button = ctk.CTkButton(frame, text = 'following list...', 
-    command = get_following_list_dir, width = 150, fg_color = '#222222', hover_color = '#333333',
-    corner_radius = 10, text_color = '#999999', font = handcaps_25, border_spacing = 0)
+        command = get_following_list, width = 150, fg_color = '#222222', hover_color = '#333333',
+        corner_radius = 10, text_color = '#999999', font = handcaps_25, border_spacing = 0)
 
     follower_filename_label = ctk.CTkLabel(frame, text = 'NO FILE SELECTED...', text_color='#222222',
         justify = 'right', padx = 0, pady = 0, font=handcaps_20)
@@ -99,16 +141,16 @@ def main():
         hover=True, state='normal', command=not_implemented, variable=mode, value = 1, font = handcaps_20)
     
     fans_rdo = ctk.CTkRadioButton(frame, text='fans', width = 100,
-    corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
-    hover=True, state='normal', command=not_implemented, variable=mode, value = 2, font = handcaps_20)
+        corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
+        hover=True, state='normal', command=not_implemented, variable=mode, value = 2, font = handcaps_20)
 
     friends_rdo = ctk.CTkRadioButton(frame, text='friends', width = 100,
-    corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
-    hover=True, state='normal', command=not_implemented, variable=mode, value = 3, font = handcaps_20)
+        corner_radius = 10, border_color='#222222', text_color='#222222', text_color_disabled='#444444',
+        hover=True, state='normal', command=not_implemented, variable=mode, value = 3, font = handcaps_20)
 
     investigate_button = ctk.CTkButton(frame, text = 'Investigate!', 
-    command = not_implemented, width = 300, fg_color = '#222222', hover_color = '#333333',
-    corner_radius = 10, text_color = '#999999', font = handcaps_35_bold, border_spacing = 0)
+        command = not_implemented, width = 300, fg_color = '#222222', hover_color = '#333333',
+        corner_radius = 10, text_color = '#999999', font = handcaps_35_bold, border_spacing = 0)
 
 
     # place UI elements on grid
